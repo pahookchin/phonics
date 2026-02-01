@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Phonics Board</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        /*
+        --color-1: #E3F0D8; // Green
+        --color-2: #FFF7CF; // Yellow
+        --color-3: #C7E3F7; // Blue
+        --color-4: #FDD2C0; // Red
+        */
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9fafb;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 2rem;
+        }
+        .container {
+            position: relative;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0;
+            padding: 1rem;
+            background: #FFF7CF;
+            background: linear-gradient( 180deg, rgba(255, 247, 207, 1) 0%, rgba(255, 247, 207, 1) 24%, rgba(255, 255, 255, 1) 24%, rgba(255, 255, 255, 1) 25%,  rgba(253, 210, 192, 1) 25%, rgba(253, 210, 192, 1) 49%, rgba(255, 255, 255, 1) 49%, rgba(255, 255, 255, 1) 50%, rgba(227, 240, 216, 1) 50%, rgba(227, 240, 216, 1) 74%,  rgba(255, 255, 255, 1) 74%, rgba(255, 255, 255, 1) 75%,rgba(199, 227, 247, 1) 75%, rgba(199, 227, 247, 1) 100% );        
+        }
+
+        .phonics-levels {
+            font-size: 3.5rem;
+            height: 100%;
+            font-weight: bold;
+            display: inline-block;
+            vertical-align: top;
+            padding: 0.25rem 0
+        }
+
+        .phonics-levels p {
+            margin: 1rem 0;
+            padding: 0.2rem 1.5rem;
+            text-align: center;
+            background-color: #f3f4f6;
+            color: #fff;
+            cursor: default;
+        }
+
+        .phonics-levels p:nth-child(2) {
+            margin: 2.4rem 0;
+            background-color: #ec1f27;
+        }
+
+        .phonics-levels p:nth-child(3) {
+            margin: 1.4rem 0;
+            background-color: #73bf45;
+        }
+
+        .phonics-levels p:nth-child(4) {
+            margin: 2.4rem 0 0 0;
+            background-color: #1d94d2;
+        }        
+        .phonics-image {
+            width: 91%;
+            height: auto;
+            display: inline-block;
+            margin-top: 10px;
+            padding-left: 2rem;
+            position: relative;
+            top: -3px;
+        }
+
+        .overlay-container {
+            position: absolute;
+            width: 97%;
+            inset: 0;
+            margin-left: 90px;
+        }
+
+        .letter-card {
+            position: absolute;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: transparent;
+            border: none;
+        }
+
+        .letter-card:hover {
+            background-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .letter-card:active {
+            background-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .letter-card.active {
+            background-color: rgba(59, 130, 246, 0.4);
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container d-flex justify-content-around">
+        <div class="phonics-levels h-100 d-flex flex-column justify-content-between">
+            <p class="bg-warning text-white">1</p><p>2</p><p>3</p><p>4</p>
+        </div>
+        <!-- Background image -->
+        <img 
+            src="../../images/margot-letter-level1-4.png" 
+            alt="Phonics board" 
+            class="phonics-image"
+            id="phonicsImage"
+            style="max-height: 95%;"
+        />
+        
+        <!-- Clickable overlays container -->
+        <div class="overlay-container" id="overlayContainer"></div>
+    </div>
+
+    <script>
+        // Define letter cards with their positions (UK/Australian phonics sounds)
+        const letterCards = [
+            // Row 1 - Yellow bar
+            { letter: 'm', row: 0, col: 0, sound: 'mmmm' },
+            { letter: 's', row: 0, col: 1, sound: 'ssss' },
+            { letter: 'f', row: 0, col: 2, sound: 'ffff' },
+            { letter: 'a', row: 0, col: 3, sound: 'a', isVowel: true },
+            { letter: 'p', row: 0, col: 4, sound: 'p' },
+            { letter: 't', row: 0, col: 5, sound: 't' },
+            { letter: 'c', row: 0, col: 6, sound: 'c' },
+            { letter: 'i', row: 0, col: 7, sound: 'i', isVowel: true },
+            
+            // Row 2 - Red bar
+            { letter: 'b', row: 1, col: 0, sound: 'b' },
+            { letter: 'h', row: 1, col: 1, sound: 'hhhh' },
+            { letter: 'n', row: 1, col: 2, sound: 'nnnn' },
+            { letter: 'o', row: 1, col: 3, sound: 'o', isVowel: true },
+            { letter: 'd', row: 1, col: 4, sound: 'd' },
+            { letter: 'g', row: 1, col: 5, sound: 'g' },
+            { letter: 'l', row: 1, col: 6, sound: 'llll' },
+            { letter: 'v', row: 1, col: 7, sound: 'vvvv' },
+            
+            // Row 3 - Green bar
+            { letter: 'y', row: 2, col: 0, sound: 'y' },
+            { letter: 'r', row: 2, col: 1, sound: 'rrrr' },
+            { letter: 'e', row: 2, col: 2, sound: 'e', isVowel: true },
+            { letter: 'qu', row: 2, col: 3, sound: 'qu' },
+            { letter: 'z', row: 2, col: 4, sound: 'zzzz' },
+            
+            // Row 4 - Blue bar
+            { letter: 'j', row: 3, col: 0, sound: 'j' },
+            { letter: 'u', row: 3, col: 1, sound: 'u', isVowel: true },
+            { letter: 'k', row: 3, col: 2, sound: 'k' },
+            { letter: 'x', row: 3, col: 3, sound: 'x' },
+            { letter: 'w', row: 3, col: 4, sound: 'w' },
+        ];
+
+        let activeCardElement = null;
+        let currentAudio = null;
+
+        function playSound(letter, sound, buttonElement) {
+            // Visual feedback
+            if (activeCardElement) {
+                activeCardElement.classList.remove('active');
+            }
+            buttonElement.classList.add('active');
+            activeCardElement = buttonElement;
+            
+            setTimeout(() => {
+                buttonElement.classList.remove('active');
+            }, 300);
+
+            // Stop any currently playing audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+
+            // Play audio file from audio directory
+            // For 'qu', use 'qu.mp3', for other letters use the letter itself
+            const audioFileName = `${letter}.mp3`;
+            const audioPath = `../../audio/${audioFileName}`;
+            
+            currentAudio = new Audio(audioPath);
+            currentAudio.volume = 1.0;
+            
+            currentAudio.play().catch(error => {
+                console.error(`Error playing audio for ${letter}:`, error);
+            });
+        }
+
+        function createLetterCards() {
+            const container = document.getElementById('overlayContainer');
+            
+            letterCards.forEach((card) => {
+                // Calculate position based on grid layout
+                const cardWidth = 11.5; // approximately 11.5% width per card
+                const cardHeight = 23; // approximately 23% height per row
+                const gapX = 0.1; // horizontal gap
+                const gapY = 2.6; // vertical gap between rows
+                const offsetX = 3; // left offset
+                const offsetY = 1.8; // top offset
+                
+                const left = offsetX + card.col * (cardWidth + gapX);
+                const top = offsetY + card.row * (cardHeight + gapY);
+                
+                // Create button element
+                const button = document.createElement('button');
+                button.className = 'letter-card';
+                button.style.left = `${left}%`;
+                button.style.top = `${top}%`;
+                button.style.width = `${cardWidth}%`;
+                button.style.height = `${cardHeight}%`;
+                button.setAttribute('aria-label', `Play sound for letter ${card.letter}`);
+                
+                // Add click event
+                button.addEventListener('click', () => {
+                    playSound(card.letter, card.sound, button);
+                });
+                
+                container.appendChild(button);
+            });
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', createLetterCards);
+        } else {
+            createLetterCards();
+        }
+    </script>
+</body>
+</html>
